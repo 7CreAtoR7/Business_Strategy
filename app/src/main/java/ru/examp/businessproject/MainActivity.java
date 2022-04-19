@@ -100,12 +100,9 @@ public class MainActivity extends AppCompatActivity {
                             List<Double> NewData = Arrays.asList(countStock, sumRubStocks, sumToPay);
                             System.out.println("Добавили в словарь акцию " + name + ": " + NewData);
                             hashmap.put(name, NewData);
-                            System.out.println("Добавили в глобальный словарь ");
                             days -= 1;
-                            System.out.println("Сработало условие отбора, было days = " + (days + 1) + " сейчас = " + days);
                         } else {
                             days -= 1;
-                            System.out.println("Сработало условие null, days было = " + (days + 1) + "сейчас = " + days);
                         }
 
                         // после покупки: если акция (цена закрытия за день) растет три и более дней
@@ -121,22 +118,14 @@ public class MainActivity extends AppCompatActivity {
                             List<Double> NewData = Arrays.asList(countStock, sumRubStocks, sumToPay);
                             System.out.println("Добавили в словарь акцию " + name + ": " + NewData);
                             hashmap.put(name, NewData);
-                            System.out.println("Добавили в глобальный словарь ");
                             days -= 1;
-                            System.out.println("Сработало условие отбора, было days = " + (days + 1) + " сейчас = " + days);
                         } else {
                             days -= 1;
-                            System.out.println("Сработало условие null, days было = " + (days + 1) + "сейчас = " + days);
                         }
                     } else {
                         days -= 1;
-                        System.out.println("Сработало условие НЕТ, days было = " + (days + 1) + " сейчас = " + days);
                     }
                 }
-
-//                for (Map.Entry entry : hashmap.entrySet()) {
-//                    System.out.println("Key: " + entry.getKey() + " Value: " + entry.getValue());
-//                }
 
                 // кол-во акций в воображаемом портфеле
                 // стоимость виртуального портфеля на данный момент
@@ -146,15 +135,14 @@ public class MainActivity extends AppCompatActivity {
                 //double sumStocks = hashmap.get(name).get(1);
                 double sumSales = Objects.requireNonNull(hashmap.get(name)).get(2);
                 if (countBoughtStocksThisType * close_price_last_day > sumSales) {
-                    System.out.println("УСЛОВИЕ ВЫГОДНО");
+                    System.out.println("Условие выгодно");
                     stocks.add(new Stock(name, close_price_last_day + " руб", R.drawable.ic_baseline_trending_up_24, figi));
                 } else {
-                    System.out.println("УСЛОВИЕ НЕ ВЫГОДНО");
-                    System.out.println("countBoughtStocksThisType * close_price_last_day > sumSales = " + countBoughtStocksThisType + " * " + close_price_last_day + " > " + sumSales);
+                    System.out.println("Условие не выгодно");
                     stocks.add(new Stock(name, close_price_last_day + " руб", R.drawable.ic_baseline_trending_down_24, figi));
                 }
             } catch (Exception e) {
-                System.out.println("ОШИБКА " + Arrays.toString(e.getStackTrace()));
+                System.out.println("Ошибка: " + Arrays.toString(e.getStackTrace()));
             }
         }
 
