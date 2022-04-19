@@ -3,7 +3,6 @@ package ru.examp.businessproject;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.DatePicker;
 import android.widget.Toast;
 
@@ -17,6 +16,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import ru.examp.businessproject.RetrofitData.Post;
@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getSupportActionBar().hide();
+        Objects.requireNonNull(getSupportActionBar()).hide();
         // начальная инициализация списка
         //setInitialData();
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
@@ -45,92 +45,128 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(linearLayoutManager);
 
         Intent intent = getIntent();
+        // список информации каждой акции
         List<Post> posts = (List<Post>) intent.getSerializableExtra("POSTS");
 
-        Map<String, List<Double>> hashmap = new HashMap<String, List<Double>>();
-        for (Post post : posts) {
-            // кол-во акций в воображаемом портфеле
-            // стоимость виртуального портфеля на данный момент
-            // сумма затрат на покупку этой акции
-            List<Double> currentValues = Arrays.asList(0.0, 0.0, 0.0);
-            hashmap.put(post.getName(), currentValues);
-        }
+        // акция: [кол-во, стоимость портфеля, сумма затрат на покупку этой акции]
+        Map<String, List<Double>> hashmap = new HashMap<>();
+        // кол-во акций в воображаемом портфеле
+        // стоимость виртуального портфеля на данный момент
+        // сумма затрат на покупку этой акции
 
-//        for (Map.Entry entry : hashmap.entrySet()) {
-//            System.out.println("Key: " + entry.getKey() + " Value: " + entry.getValue());
+
+//        for (Post post : posts) {
+//            // кол-во акций в воображаемом портфеле
+//            // стоимость виртуального портфеля на данный момент
+//            // сумма затрат на покупку этой акции
+//            List<Double> currentValues = Arrays.asList(0.0, 0.0, 0.0);
+//            hashmap.put(post.getName(), currentValues);
 //        }
 
 
         for (Post post : posts) {
-            Double close_price_last_day = post.getClosePriceLastDay(); // цена закрытия на последних торгах
+            List<Double> currentValues = Arrays.asList(0.0, 0.0, 0.0);
+            hashmap.put(post.getName(), currentValues);
+
+            double close_price_last_day = post.getClosePriceLastDay(); // цена закрытия акции на последних торгах
             String figi = post.getFigi(); // название id figi
-            String last_date = post.getLast_date(); // последний день торгов
+            //String last_date = post.getLast_date(); // последний день торгов
             List<Double> list_prices_last_100_day = post.getListPricesLast100Day(); // массив цен закрытия за последние 100 торговых дней
             String name = post.getName(); // название акции
-            Integer volume = post.getVolume(); // кол-во сделок
-            //System.out.println("цена закрытия на последних торгах = " + close_price_last_day + "\n" + "название id figi = " + figi + "\n" + "последний день торгов =" + last_date
-            //        + "\n" + "название акции = " + name + "\n" + "кол-во сделок = " + volume + "\n");
-
+            //Integer volume = post.getVolume(); // кол-во сделок
+            //System.out.println("цена закрытия на последних торгах = " + close_price_last_day + "\n" + "название id figi = " + figi + "\n" + "последний день торгов = " + last_date+ "\n" + "название акции = " + name + "\n" + "кол-во сделок = " + volume + "\n");
 
             try {
-
                 // по умолчанию рассматривается 30 последних товрговых дней
-                int days = 30;
-                while (days > 0) {
+                int days = 10;
+                while (days > 5) {
                     // проверка на первое условие:
                     // если цена закрытия за день снижалась хотя бы два дня подряд, а потом
                     // сменилась днем роста, то еще на следующий день покупаем 1 акцию
                     // нужно получить цены закрытия за последние 4 торговых дня
-                    Double goodPrice = list_prices_last_100_day.get(list_prices_last_100_day.size() - days + 4);
-                    Double firstPrice = list_prices_last_100_day.get(list_prices_last_100_day.size() - days);
-                    Double secondPrice = list_prices_last_100_day.get(list_prices_last_100_day.size() - days + 1);
-                    Double thirdPrice = list_prices_last_100_day.get(list_prices_last_100_day.size() - days + 2);
-                    Double fourthPrice = list_prices_last_100_day.get(list_prices_last_100_day.size() - days + 3);
+                    double firstPrice = list_prices_last_100_day.get(list_prices_last_100_day.size() - days);
+                    double secondPrice = list_prices_last_100_day.get(list_prices_last_100_day.size() - days + 1);
+                    double thirdPrice = list_prices_last_100_day.get(list_prices_last_100_day.size() - days + 2);
+                    double fourthPrice = list_prices_last_100_day.get(list_prices_last_100_day.size() - days + 3);
+                    double isGoodPriceToBuy = list_prices_last_100_day.get(list_prices_last_100_day.size() - days + 4);
+                    double isGoodPriceToBuyLast = list_prices_last_100_day.get(list_prices_last_100_day.size() - days + 5);
                     if (firstPrice > secondPrice && secondPrice > thirdPrice && thirdPrice < fourthPrice) {
                         // закупаем 1 акцию на следующий день
-                        List<Double> currentValues = hashmap.get(name);
-                        if (currentValues != null) {
-                            double countStock = currentValues.get(0) + 1; // кол-во акций + 1
-                            double sumRubStocks = currentValues.get(1) + goodPrice; // сумма акций +
-                            double sumToPay = currentValues.get(2) + goodPrice; // сумма затрат +
+                        List<Double> listCurrentStockInfo = hashmap.get(name);
+                        if (listCurrentStockInfo != null) {
+                            double countStock = listCurrentStockInfo.get(0) + 1; // кол-во акций + 1
+                            double sumRubStocks = listCurrentStockInfo.get(1) + isGoodPriceToBuy; // сумма акций +
+                            double sumToPay = listCurrentStockInfo.get(2) + isGoodPriceToBuy; // сумма затрат +
                             List<Double> NewData = Arrays.asList(countStock, sumRubStocks, sumToPay);
+                            System.out.println("Добавили в словарь акцию " + name + ": " + NewData);
                             hashmap.put(name, NewData);
-                            days -= 4;
-                        } else days -= 1;
-                    } else days -= 1;
-                    days -= 1;
+                            System.out.println("Добавили в глобальный словарь ");
+                            days -= 1;
+                            System.out.println("Сработало условие отбора, было days = " + (days + 1) + " сейчас = " + days);
+                        } else {
+                            days -= 1;
+                            System.out.println("Сработало условие null, days было = " + (days + 1) + "сейчас = " + days);
+                        }
+
+                        // после покупки: если акция (цена закрытия за день) растет три и более дней
+                        // подряд и потом рост сменяется дневным снижением более чем на 2%, то еще на
+                        // следующий день продаем 1 акцию
+                    } else if (firstPrice < secondPrice && secondPrice < thirdPrice && thirdPrice < fourthPrice && isGoodPriceToBuy < fourthPrice * 0.98) {
+                        // продаем 1 акцию на следующий день (isGoodPriceToBuyLast)
+                        List<Double> listCurrentStockInfo = hashmap.get(name);
+                        if (listCurrentStockInfo != null && listCurrentStockInfo.get(0) > 0) { //проверка, что акция была куплена ранее
+                            double countStock = listCurrentStockInfo.get(0) - 1; // кол-во данной акций - 1 в портфеле
+                            double sumRubStocks = listCurrentStockInfo.get(1) - isGoodPriceToBuyLast; // продажа по последней цене закрытия торгов на те дни
+                            double sumToPay = listCurrentStockInfo.get(2) - isGoodPriceToBuyLast; // сумма затрат -,т.к. продали, фиксируем прибыль/убыток
+                            List<Double> NewData = Arrays.asList(countStock, sumRubStocks, sumToPay);
+                            System.out.println("Добавили в словарь акцию " + name + ": " + NewData);
+                            hashmap.put(name, NewData);
+                            System.out.println("Добавили в глобальный словарь ");
+                            days -= 1;
+                            System.out.println("Сработало условие отбора, было days = " + (days + 1) + " сейчас = " + days);
+                        } else {
+                            days -= 1;
+                            System.out.println("Сработало условие null, days было = " + (days + 1) + "сейчас = " + days);
+                        }
+                    } else {
+                        days -= 1;
+                        System.out.println("Сработало условие НЕТ, days было = " + (days + 1) + " сейчас = " + days);
+                    }
                 }
 
 //                for (Map.Entry entry : hashmap.entrySet()) {
 //                    System.out.println("Key: " + entry.getKey() + " Value: " + entry.getValue());
 //                }
-                if (((hashmap.get(name).get(1) * hashmap.get(name).get(0)) - (post.getClosePriceLastDay()) * hashmap.get(name).get(0)) > 0) {
-                    stocks.add(new Stock(name, close_price_last_day.toString() + " руб", R.drawable.ic_baseline_trending_up_24, figi));
+
+                // кол-во акций в воображаемом портфеле
+                // стоимость виртуального портфеля на данный момент
+                // сумма затрат на покупку этой акции
+
+                double countBoughtStocksThisType = Objects.requireNonNull(hashmap.get(name)).get(0);
+                //double sumStocks = hashmap.get(name).get(1);
+                double sumSales = Objects.requireNonNull(hashmap.get(name)).get(2);
+                if (countBoughtStocksThisType * close_price_last_day > sumSales) {
+                    System.out.println("УСЛОВИЕ ВЫГОДНО");
+                    stocks.add(new Stock(name, close_price_last_day + " руб", R.drawable.ic_baseline_trending_up_24, figi));
                 } else {
-                    stocks.add(new Stock(name, close_price_last_day.toString() + " руб", R.drawable.ic_baseline_trending_down_24, figi));
+                    System.out.println("УСЛОВИЕ НЕ ВЫГОДНО");
+                    System.out.println("countBoughtStocksThisType * close_price_last_day > sumSales = " + countBoughtStocksThisType + " * " + close_price_last_day + " > " + sumSales);
+                    stocks.add(new Stock(name, close_price_last_day + " руб", R.drawable.ic_baseline_trending_down_24, figi));
                 }
-
-//                for (int i = 0; i<list_prices_last_100_day.size();i++) {
-//                    System.out.println(list_prices_last_100_day.get(i));
-//                }
-
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                System.out.println("ОШИБКА " + Arrays.toString(e.getStackTrace()));
             }
         }
 
         // устанавливаем для списка адаптер
         recyclerView.setAdapter(adapter);
 
-        findViewById(R.id.set_date).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new DatePickerDialog(MainActivity.this, d,
-                        dateAndTime.get(Calendar.YEAR),
-                        dateAndTime.get(Calendar.MONTH),
-                        dateAndTime.get(Calendar.DAY_OF_MONTH)).show();
-                Toast.makeText(MainActivity.this, "Выберите прошедшую дату в пределах 100 дней", Toast.LENGTH_LONG).show();
-            }
-
+        findViewById(R.id.set_date).setOnClickListener(v -> {
+            new DatePickerDialog(MainActivity.this, d,
+                    dateAndTime.get(Calendar.YEAR),
+                    dateAndTime.get(Calendar.MONTH),
+                    dateAndTime.get(Calendar.DAY_OF_MONTH)).show();
+            Toast.makeText(MainActivity.this, "Выберите прошедшую дату в пределах 100 дней", Toast.LENGTH_LONG).show();
         });
 
         // установка обработчика выбора даты
@@ -154,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
                 dateAndTime1.set(Calendar.MILLISECOND, 0);
                 delta = dateAndTime1.getTimeInMillis() - dateAndTime.getTimeInMillis();
                 int days = (int) TimeUnit.MILLISECONDS.toDays(delta);
-                Toast.makeText(MainActivity.this, "Разница (дни) " + Integer.toString(days), Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "Разница (дни) " + days, Toast.LENGTH_LONG).show();
             }
         };
     }

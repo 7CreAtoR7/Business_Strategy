@@ -15,18 +15,23 @@ public class Post implements Serializable {
     public double getClosePriceLastDay() {
         return close_price_last_day;
     }
+
     public String getFigi() {
         return figi;
     }
+
     public String getLast_date() {
         return last_date;
     }
+
     public List<Double> getListPricesLast100Day() {
         return list_prices_last_100_day;
     }
+
     public String getName() {
         return name;
     }
+
     public int getVolume() {
         return volume;
     }

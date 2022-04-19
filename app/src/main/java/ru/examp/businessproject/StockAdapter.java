@@ -7,14 +7,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder>{
+public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> {
 
     private final LayoutInflater inflater;
     private final List<Stock> stocks;
@@ -23,6 +22,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder>{
         this.stocks = stocks;
         this.inflater = LayoutInflater.from(context);
     }
+
     @NonNull
     @Override
     public StockAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -38,11 +38,8 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder>{
         holder.nameView.setText(stock.getName());
         holder.priceView.setText(stock.getPrice());
         holder.figiView.setText(stock.getFigi());
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(v.getContext(), "Нажатие " + position, Toast.LENGTH_SHORT).show();
-            }
+        holder.itemView.setOnClickListener(v -> {
+            //Toast.makeText(v.getContext(), "Нажатие " + position, Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -59,7 +56,8 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder>{
     public static class ViewHolder extends RecyclerView.ViewHolder {
         final ImageView imgView;
         final TextView nameView, priceView, figiView;
-        ViewHolder(View view){
+
+        ViewHolder(View view) {
             super(view);
             imgView = view.findViewById(R.id.photo);
             nameView = view.findViewById(R.id.name);
